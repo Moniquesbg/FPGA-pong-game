@@ -1,0 +1,7 @@
+
+*.hdb
+*.cdb
+*.kpt
+/pong-game/db
+/pong-game/incremental_db/compiled_partitions
+/pong-game/output_files
