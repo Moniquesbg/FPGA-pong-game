@@ -1,0 +1,53 @@
+module Motion_Detection (
+    input        CLK,
+    input        RST,
+    input [10:0] current_X,
+    input [10:0] current_Y,
+    input        hand_detected,
+    output       motion_detected
+);
+
+    // Registers for previous hand position
+    reg [10:0] prev_X;
+    reg [10:0] prev_Y;
+
+    // Motion detection parameters
+    parameter [10:0] movement_threshold = 11'd10;
+
+    // Register to store detected motion
+    reg detected;
+
+    always @(posedge CLK or posedge RST) begin
+        if (RST) begin
+            prev_X <= 11'd0;
+            prev_Y <= 11'd0;
+            detected <= 1'b0;
+        end else if (hand_detected) begin
+            // Calculate movement
+            if ((abs(current_X - prev_X) > movement_threshold) || 
+                (abs(current_Y - prev_Y) > movement_threshold)) begin
+                detected <= 1'b1;
+            end else begin
+                detected <= 1'b0;
+            end
+            
+            // Update previous position
+            prev_X <= current_X;
+            prev_Y <= current_Y;
+        end else begin
+            detected <= 1'b0;
+        end
+    end
+
+    // Output motion detection result
+    assign motion_detected = detected;
+
+    // Function to calculate absolute value
+    function [10:0] abs;
+        input [10:0] value;
+        begin
+            abs = value[10] ? (~value + 1) : value;
+        end
+    endfunction
+
+endmodule

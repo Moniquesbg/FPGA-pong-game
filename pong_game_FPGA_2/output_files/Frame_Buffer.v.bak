@@ -1,0 +1,41 @@
+module FrameBuffer (
+    input clk,
+    input rst,
+    input [9:0] iRed, iGreen, iBlue, // RGB-waarden van de huidige frame
+    input [10:0] x, y, // Coördinaten van de huidige pixel
+    input write_enable, // Signaal om naar de buffer te schrijven
+    output reg [9:0] oPrevRed, oPrevGreen, oPrevBlue // RGB-waarden van de vorige frame
+);
+
+    // Frame buffer grootte en specificaties
+    reg [9:0] bufferRed [0:639][0:479]; // Voorbeeld buffer van 640x480
+    reg [9:0] bufferGreen [0:639][0:479];
+    reg [9:0] bufferBlue [0:639][0:479];
+    
+    // Schrijf naar de buffer
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            // Reset de buffer als er een reset is
+            integer i, j;
+            for (i = 0; i < 640; i = i + 1) begin
+                for (j = 0; j < 480; j = j + 1) begin
+                    bufferRed[i][j] <= 0;
+                    bufferGreen[i][j] <= 0;
+                    bufferBlue[i][j] <= 0;
+                end
+            end
+        end else if (write_enable) begin
+            // Schrijf de huidige pixel gegevens naar de buffer
+            bufferRed[x][y] <= iRed;
+            bufferGreen[x][y] <= iGreen;
+            bufferBlue[x][y] <= iBlue;
+        end
+    end
+    
+    // Lezen van de vorige frame gegevens
+    always @(posedge clk) begin
+        oPrevRed <= bufferRed[x][y];
+        oPrevGreen <= bufferGreen[x][y];
+        oPrevBlue <= bufferBlue[x][y];
+    end
+endmodule

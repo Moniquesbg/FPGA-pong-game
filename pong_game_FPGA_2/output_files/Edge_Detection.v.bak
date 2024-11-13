@@ -1,0 +1,53 @@
+module Edge_Detection (
+    input wire [7:0] iRed,     // Rood component van de pixel
+    input wire [7:0] iGreen,   // Groen component van de pixel
+    input wire [7:0] iBlue,    // Blauw component van de pixel
+    input wire iVGA_CLK,       // VGA kloksignaal
+    input wire iRST,           // Reset signaal
+    output reg [7:0] oRed,     // Rood output na edge detection
+    output reg [7:0] oGreen,   // Groen output na edge detection
+    output reg [7:0] oBlue     // Blauw output na edge detection
+);
+
+    // Sobel kernels
+    reg signed [2:0] Gx[0:2][0:2];
+    reg signed [2:0] Gy[0:2][0:2];
+
+    initial begin
+        // Sobel filter X
+        Gx[0][0] = -1; Gx[0][1] = 0; Gx[0][2] = 1;
+        Gx[1][0] = -2; Gx[1][1] = 0; Gx[1][2] = 2;
+        Gx[2][0] = -1; Gx[2][1] = 0; Gx[2][2] = 1;
+        
+        // Sobel filter Y
+        Gy[0][0] = -1; Gy[0][1] = -2; Gy[0][2] = -1;
+        Gy[1][0] = 0;  Gy[1][1] = 0;  Gy[1][2] = 0;
+        Gy[2][0] = 1;  Gy[2][1] = 2;  Gy[2][2] = 1;
+    end
+
+    // Variabelen om de berekende waarden van Gx en Gy op te slaan
+    reg signed [15:0] sumX;
+    reg signed [15:0] sumY;
+    reg [7:0] edge_magnitude;
+
+    always @(posedge iVGA_CLK or posedge iRST) begin
+        if (iRST) begin
+            oRed <= 0;
+            oGreen <= 0;
+            oBlue <= 0;
+        end else begin
+            // Hier zou je de omringende pixelwaarden gebruiken
+            // Simpel voorbeeld (je zou eigenlijk pixels van een 3x3 venster moeten gebruiken):
+            sumX = (Gx[0][0] * iRed) + (Gx[1][1] * iGreen) + (Gx[2][2] * iBlue);
+            sumY = (Gy[0][0] * iRed) + (Gy[1][1] * iGreen) + (Gy[2][2] * iBlue);
+            
+            // Bereken de magnitude van de gradient
+            edge_magnitude = (sumX > sumY) ? sumX : sumY;
+            
+            // Geef de edge-detectie resultaten als output (wit bij randen, zwart bij niet-randen)
+            oRed <= edge_magnitude;
+            oGreen <= edge_magnitude;
+            oBlue <= edge_magnitude;
+        end
+    end
+endmodule

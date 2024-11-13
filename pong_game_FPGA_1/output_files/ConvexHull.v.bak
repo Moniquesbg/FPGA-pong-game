@@ -1,0 +1,91 @@
+module ConvexHull(
+    input wire [7:0] pixel_in,    // Contour pixel input
+    input wire VGA_CLK,
+    input wire RST,
+    input wire [10:0] x,          // X-coordinate of the current pixel
+    input wire [10:0] y,          // Y-coordinate of the current pixel
+    input wire [15:0] point_count,// Total number of contour points
+    output reg [7:0] hull_out,    // Output for Convex Hull pixels
+    output reg [10:0] hull_x,     // X-coordinate of the Convex Hull point
+    output reg [10:0] hull_y      // Y-coordinate of the Convex Hull point
+);
+
+    // Maximum number of contour points (e.g., for 640x480)
+    parameter MAX_POINTS = 1000;
+
+    // Array to store the contour points (x, y)
+    reg [10:0] contour_x [0:MAX_POINTS-1];
+    reg [10:0] contour_y [0:MAX_POINTS-1];
+
+    // Stack to store the convex hull points
+    reg [10:0] hull_stack_x [0:MAX_POINTS-1];
+    reg [10:0] hull_stack_y [0:MAX_POINTS-1];
+    reg [15:0] hull_size; // Number of points in the convex hull
+
+    integer i, top;
+
+    // Cross product to determine if we turn left or right
+    function signed [20:0] cross_product;
+        input signed [10:0] x1, y1, x2, y2, x3, y3;
+        begin
+            cross_product = (x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1);
+        end
+    endfunction
+
+    // Main state machine to control the hull construction
+    always @(posedge VGA_CLK or posedge RST) begin
+        if (RST) begin
+            hull_out <= 8'h00;
+            hull_size <= 0;
+            top <= 0;
+
+            // Clear the contour arrays
+            for (i = 0; i < MAX_POINTS; i = i + 1) begin
+                contour_x[i] <= 0;
+                contour_y[i] <= 0;
+                hull_stack_x[i] <= 0;
+                hull_stack_y[i] <= 0;
+            end
+        end else begin
+            // Assume pixel_in > 0 indicates a contour point
+            if (pixel_in > 0 && point_count < MAX_POINTS) begin
+                // Store the current contour point
+                contour_x[point_count] <= x;
+                contour_y[point_count] <= y;
+            end
+
+            // After all points are collected, construct the Convex Hull
+            if (point_count == MAX_POINTS - 1) begin
+                // Sort the points based on the polar angle (we'll assume sorting is done off-module)
+                // Sort contour_x[] and contour_y[] here or in a separate module if needed
+
+                // Initialize the Convex Hull with the first two points
+                hull_stack_x[0] <= contour_x[0];
+                hull_stack_y[0] <= contour_y[0];
+                hull_stack_x[1] <= contour_x[1];
+                hull_stack_y[1] <= contour_y[1];
+                top <= 2;
+
+                // Process the remaining points
+                for (i = 2; i < point_count; i = i + 1) begin
+                    while (top >= 2 && cross_product(
+                        hull_stack_x[top-2], hull_stack_y[top-2],
+                        hull_stack_x[top-1], hull_stack_y[top-1],
+                        contour_x[i], contour_y[i]) <= 0) begin
+                        top <= top - 1; // Pop from the stack
+                    end
+                    hull_stack_x[top] <= contour_x[i];
+                    hull_stack_y[top] <= contour_y[i];
+                    top <= top + 1; // Push onto the stack
+                end
+
+                // Output the Convex Hull points
+                for (i = 0; i < top; i = i + 1) begin
+                    hull_x <= hull_stack_x[i];
+                    hull_y <= hull_stack_y[i];
+                    hull_out <= 8'hFF; // Mark the hull point as white
+                end
+            end
+        end
+    end
+endmodule

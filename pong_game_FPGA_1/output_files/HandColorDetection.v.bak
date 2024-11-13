@@ -1,0 +1,42 @@
+module HandColorDetection(
+    input [7:0] iRed,       // Rood component van de pixel
+    input [7:0] iGreen,     // Groen component van de pixel
+    input [7:0] iBlue,      // Blauw component van de pixel
+    input [7:0] hand_red,   // Rood component van de handkleur
+    input [7:0] hand_green, // Groen component van de handkleur
+    input [7:0] hand_blue,  // Blauw component van de handkleur
+    input [7:0] edge_in,    // Edge detection output
+    input VGA_CLK,          // VGA Clock
+    input RST,              // Reset signal
+    output reg [7:0] color_out // Output color (rood als handkleur gedetecteerd is)
+);
+
+    wire [7:0] filtered_color;
+
+    // Instantiate the ColorFilter module
+    ColorFilter color_filter (
+        .iRed(iRed),
+        .iGreen(iGreen),
+        .iBlue(iBlue),
+        .hand_red(hand_red),
+        .hand_green(hand_green),
+        .hand_blue(hand_blue),
+        .VGA_CLK(VGA_CLK),
+        .RST(RST),
+        .color_out(filtered_color)
+    );
+
+    always @(posedge VGA_CLK or posedge RST) begin
+        if (RST) begin
+            color_out <= 8'h00; // Default to black
+        end else begin
+            // If edge detected and color matches hand color, output red
+            if (edge_in > 8'h00 && filtered_color == 8'hFF) begin
+                color_out <= 8'hFF; // Set to red
+            end else begin
+                color_out <= 8'h00; // Set to black
+            end
+        end
+    end
+
+endmodule

@@ -1,0 +1,18 @@
+module Dilation(
+    input wire [9:0] image [0:2][0:2], // 3x3 pixel matrix
+    output reg [9:0] result
+);
+    integer i, j;
+    reg [9:0] max_val;
+
+    always @* begin
+        max_val = 10'h0; // Minimum 10-bit value
+        for (i = 0; i < 3; i = i + 1) begin
+            for (j = 0; j < 3; j = j + 1) begin
+                if (image[i][j] > max_val)
+                    max_val = image[i][j];
+            end
+        end
+        result = max_val;
+    end
+endmodule

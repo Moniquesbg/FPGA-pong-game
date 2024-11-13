@@ -1,0 +1,30 @@
+module HandMasking(
+    input wire VGA_CLK,
+    input wire RST,
+    input wire [7:0] pixel_in,   // Ingangspixelwaarde van de afbeelding
+    input wire [10:0] hand_x,    // X-coördinaat van de hand
+    input wire [10:0] hand_y,    // Y-coördinaat van de hand
+    input wire hand_detected,    // Vlag die aangeeft of de hand gedetecteerd is
+    output reg [7:0] pixel_out   // Uitgangspixelwaarde na maskering
+);
+
+    parameter HAND_WIDTH = 40;   // Voorbeeldbreedte van de handregio
+    parameter HAND_HEIGHT = 40;  // Voorbeeldhoogte van de handregio
+
+    always @(posedge VGA_CLK or posedge RST) begin
+        if (RST) begin
+            pixel_out <= 8'd0; // Reset naar zwart
+        end else if (hand_detected) begin
+            // Controleer of de huidige pixel binnen de handregio valt
+            if ((VGA_H_CNT >= hand_x) && (VGA_H_CNT < (hand_x + HAND_WIDTH)) &&
+                (VGA_V_CNT >= hand_y) && (VGA_V_CNT < (hand_y + HAND_HEIGHT))) begin
+                pixel_out <= pixel_in;  // Houd de pixelwaarde binnen de handregio
+            end else begin
+                pixel_out <= 8'd0;      // Zet de pixelwaarde buiten de handregio op zwart
+            end
+        end else begin
+            pixel_out <= 8'd0;          // Zet de pixelwaarde op zwart als de hand niet gedetecteerd is
+        end
+    end
+
+endmodule

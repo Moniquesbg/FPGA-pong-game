@@ -1,0 +1,18 @@
+module Erosion(
+    input wire [9:0] image [0:2][0:2], // 3x3 pixel matrix
+    output reg [9:0] result
+);
+    integer i, j;
+    reg [9:0] min_val;
+
+    always @* begin
+        min_val = 10'h3FF; // Maximum 10-bit value
+        for (i = 0; i < 3; i = i + 1) begin
+            for (j = 0; j < 3; j = j + 1) begin
+                if (image[i][j] < min_val)
+                    min_val = image[i][j];
+            end
+        end
+        result = min_val;
+    end
+endmodule

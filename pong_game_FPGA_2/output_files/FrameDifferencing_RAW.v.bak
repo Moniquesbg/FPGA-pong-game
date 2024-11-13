@@ -1,0 +1,18 @@
+module FrameDifferencing_RAW (
+    input [9:0] currFrame_RAW,   // Huidige frame data (RAW)
+    input [9:0] prevFrame_RAW,   // Vorige frame data (RAW)
+    output reg motion_detected   // Output: 1 als er beweging is
+);
+
+    parameter MOTION_THRESHOLD = 10'd20; // Drempel voor beweging
+
+    always @(*) begin
+        // Vergelijk de huidige frame RAW waarde met de vorige frame waarde
+        if (abs(currFrame_RAW - prevFrame_RAW) > MOTION_THRESHOLD) begin
+            motion_detected = 1; // Beweging gedetecteerd
+        end else begin
+            motion_detected = 0; // Geen beweging gedetecteerd
+        end
+    end
+
+endmodule

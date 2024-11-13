@@ -1,0 +1,11 @@
+
+State Machine - |DE2_115_D8M_RTL|ConvexHull:convex_hull|state
+Name state.DONE state.OUTPUT_HULL state.PUSH_POINT state.POP_POINT state.CALC_CROSS state.PROCESS_POINTS state.INIT_HULL state.IDLE 
+state.IDLE 0 0 0 0 0 0 0 0 
+state.INIT_HULL 0 0 0 0 0 0 1 1 
+state.PROCESS_POINTS 0 0 0 0 0 1 0 1 
+state.CALC_CROSS 0 0 0 0 1 0 0 1 
+state.POP_POINT 0 0 0 1 0 0 0 1 
+state.PUSH_POINT 0 0 1 0 0 0 0 1 
+state.OUTPUT_HULL 0 1 0 0 0 0 0 1 
+state.DONE 1 0 0 0 0 0 0 1 

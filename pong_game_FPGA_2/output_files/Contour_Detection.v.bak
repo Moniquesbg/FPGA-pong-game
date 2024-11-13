@@ -1,0 +1,48 @@
+module Contour_Detection (
+    input wire clk,               // Clock input
+    input wire rst,               // Reset input
+    input wire [7:0] pixel_in,    // Input pixel data (binary: 1 for edge, 0 for no edge)
+    output reg [7:0] contour_out, // Output contour data (binary: 1 for contour, 0 for no contour)
+    input wire [9:0] x,           // X position of the current pixel
+    input wire [9:0] y,           // Y position of the current pixel
+    input wire [9:0] width,       // Image width
+    input wire [9:0] height       // Image height
+);
+
+reg [7:0] current_pixel;
+reg [7:0] neighbors [0:7];       // Array to hold the values of the neighboring pixels
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        contour_out <= 8'd0;      // Reset output
+    end else begin
+        // Store the current pixel value
+        current_pixel <= pixel_in;
+        
+        // Check neighbors for continuity in the contour
+        if (x > 0 && x < width-1 && y > 0 && y < height-1) begin
+            neighbors[0] <= pixel_in;            // Current pixel (center)
+            neighbors[1] <= pixel_in;            // Top-left
+            neighbors[2] <= pixel_in;            // Top
+            neighbors[3] <= pixel_in;            // Top-right
+            neighbors[4] <= pixel_in;            // Left
+            neighbors[5] <= pixel_in;            // Right
+            neighbors[6] <= pixel_in;            // Bottom-left
+            neighbors[7] <= pixel_in;            // Bottom
+        end
+
+        // Detect contour if any neighbor is "1" (edge pixel) and the current pixel is "0" (no edge)
+        if (pixel_in == 1) begin
+            if ((neighbors[1] == 1) || (neighbors[2] == 1) || (neighbors[3] == 1) ||
+                (neighbors[4] == 1) || (neighbors[5] == 1) || (neighbors[6] == 1) || (neighbors[7] == 1)) begin
+                contour_out <= 8'd1;  // Contour detected
+            end else begin
+                contour_out <= 8'd0;  // No contour
+            end
+        end else begin
+            contour_out <= 8'd0;      // Not an edge
+        end
+    end
+end
+
+endmodule

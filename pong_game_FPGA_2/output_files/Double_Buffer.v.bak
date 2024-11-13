@@ -1,0 +1,53 @@
+module Double_Buffer(
+    input wire clk,
+    input wire reset,
+    input wire [7:0] iRed,
+    input wire [7:0] iGreen,
+    input wire [7:0] iBlue,
+    input wire [9:0] iX,
+    input wire [9:0] iY,
+    input wire frame_write_enable,
+    output reg [7:0] oRed,
+    output reg [7:0] oGreen,
+    output reg [7:0] oBlue,
+    input wire [9:0] vgaX,
+    input wire [9:0] vgaY,
+    input wire toggle_buffer  // Toggle between buffer0 and buffer1
+);
+
+    // Define two memory arrays for double buffering
+    reg [7:0] buffer0 [0:479][0:639];
+    reg [7:0] buffer1 [0:479][0:639];
+    reg [7:0] (*current_buffer)[0:639];
+    reg [7:0] (*next_buffer)[0:639];
+
+    // Determine which buffer to use
+    always @(*) begin
+        if (toggle_buffer) begin
+            current_buffer = buffer1;
+            next_buffer = buffer0;
+        end else begin
+            current_buffer = buffer0;
+            next_buffer = buffer1;
+        end
+    end
+
+    // Write data to the next buffer
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            oRed <= 8'd0;
+            oGreen <= 8'd0;
+            oBlue <= 8'd0;
+        end else begin
+            if (frame_write_enable) begin
+                next_buffer[iY][iX] <= iRed;   // Assuming only red component for simplicity
+                next_buffer[iY][iX] <= iGreen;
+                next_buffer[iY][iX] <= iBlue;
+            end
+            // Provide the pixel data to VGA output from the current buffer
+            oRed <= current_buffer[vgaY][vgaX];
+            oGreen <= current_buffer[vgaY][vgaX];
+            oBlue <= current_buffer[vgaY][vgaX];
+        end
+    end
+endmodule

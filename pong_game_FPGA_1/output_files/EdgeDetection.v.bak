@@ -1,0 +1,36 @@
+module EdgeDetection(
+    input [7:0] pixel_in,  // Ingang van de grijswaarde van de pixel
+    input [7:0] prev_pixel,  // Grijswaarde van de vorige pixel (voor randen)
+    input [7:0] next_pixel,  // Grijswaarde van de volgende pixel (voor randen)
+    input VGA_CLK,
+    input RST,
+    output [7:0] edge_out   // Uitgang voor de gedetecteerde rand
+);
+    // Registers voor opslag van de gradienten
+    reg [7:0] gradient_x;
+    reg [7:0] gradient_y;
+    reg [7:0] gradient_magnitude;
+    
+    // Sobel-maskers (simplified)
+    // Sobel X-masker (in werkelijkheid gebruik je een 3x3 matrix)
+    wire [7:0] sobel_x = pixel_in - prev_pixel;
+    
+    // Sobel Y-masker (in werkelijkheid gebruik je een 3x3 matrix)
+    wire [7:0] sobel_y = next_pixel - pixel_in;
+    
+    // Bereken de gradienten
+    always @(posedge VGA_CLK or posedge RST) begin
+        if (RST) begin
+            gradient_x <= 0;
+            gradient_y <= 0;
+            gradient_magnitude <= 0;
+        end else begin
+            gradient_x <= sobel_x;  // Kan complexer zijn, zoals een 3x3 matrix applicatie
+            gradient_y <= sobel_y;  // Kan complexer zijn, zoals een 3x3 matrix applicatie
+            gradient_magnitude <= (gradient_x > gradient_y) ? gradient_x : gradient_y; // Simplistic magnitude
+        end
+    end
+    
+    // Output van de randdetectie
+    assign edge_out = gradient_magnitude;
+endmodule
